@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>To-Do List App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #38bdf8, #312e81);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15), transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.12), transparent 40%);
+      animation: bgMove 12s linear infinite;
+      z-index: -1;
+    }
+
+    @keyframes bgMove {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+      100% { transform: translateY(0); }
+    }
+
+    .todo-container {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+      animation: popUp 0.8s ease;
+    }
+
+    @keyframes popUp {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    h1 {
+      text-align: center;
+      color: #f8fafc;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border-radius: 14px;
+      border: none;
+      outline: none;
+      font-size: 0.95rem;
+      background: rgba(255,255,255,0.85);
+    }
+
+    .input-group button {
+      padding: 0.75rem 1.1rem;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, #22d3ee, #38bdf8);
+      color: #020617;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .input-group button:hover {
+      transform: scale(1.1);
+    }
+
+    ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem 1rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.9);
+      animation: slideIn 0.4s ease;
+      transition: 0.3s;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-10px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    li:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+    }
+
+    li.completed {
+      background: rgba(226,232,240,0.9);
+      text-decoration: line-through;
+      color: #64748b;
+      opacity: 0.85;
+    }
+
+    .task-text {
+      cursor: pointer;
+      flex: 1;
+    }
+
+    /* ⭐ ICON CONTAINER (NEW – ONLY ADDITION) */
+    .task-actions {
+      display: flex;
+      gap: 0.4rem;
+      background: rgba(226,232,240,0.8);
+      padding: 0.35rem 0.45rem;
+      border-radius: 12px;
+    }
+
+    .task-actions i {
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.3rem;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+
+    .task-actions i:hover {
+      background: rgba(0,0,0,0.08);
+      transform: scale(1.15);
+    }
+
+    .delete-icon {
+      color: #ef4444;
+    }
+
+    @media (max-width: 480px) {
+      .todo-container {
+        padding: 1.5rem;
+      }
+      h1 {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="todo-container">
+    <h1>✨ My To-Do List</h1>
+
+    <div class="input-group">
+      <input type="text" id="taskInput" placeholder="What do you want to do today?">
+      <button onclick="addTask()">➕</button>
+    </div>
+
+    <ul id="taskList"></ul>
+  </div>
+
+  <script>
+    const taskInput = document.getElementById("taskInput");
+    const taskList = document.getElementById("taskList");
+
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    function renderTasks() {
+      taskList.innerHTML = "";
+      tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        if (task.completed) li.classList.add("completed");
+
+        li.innerHTML = `
+          <span class="task-text" onclick="toggleTask(${index})">${task.text}</span>
+          <div class="task-actions">
+            <i class="fa-solid fa-check" onclick="toggleTask(${index})" style="color:#10b981"></i>
+            <i class="fa-solid fa-trash delete-icon" onclick="deleteTask(${index})"></i>
+          </div>
+        `;
+
+        taskList.appendChild(li);
+      });
+
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function addTask() {
+      if (taskInput.value.trim() === "") return;
+      tasks.push({ text: taskInput.value, completed: false });
+      taskInput.value = "";
+      renderTasks();
+    }
+
+    function toggleTask(index) {
+      tasks[index].completed = !tasks[index].completed;
+      renderTasks();
+    }
+
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      renderTasks();
+    }
+
+    renderTasks();
+  </script>
+
+</body>
+</html>
